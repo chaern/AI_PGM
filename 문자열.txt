@@ -1,0 +1,10 @@
+print(f"I eat {3} apples and {5} oranges.")
+print(f"I eat 3 apples and 5 oranges.")
+
+차이점과 장단점
+
+variable
+list[]
+tuple()
+set{}
+dictionary {:}
