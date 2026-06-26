@@ -8,3 +8,28 @@ list[]
 tuple()
 set{}
 dictionary {:}
+
+1. 두 개의 정수를 입력 받아 사칙연산의 결과를 출력하세요.
+2. 5개의 정수 값을 입력 받아 리스트에 저장하고 그 리스트의 합, 평균, 최소값, 최대값을 출력하세요.
+3. 과일명이 있는 리스트를 정의하고 그 리스트의 첫번째와 마지막 문자열을 출력하세요.
+
+CRUD
+create
+read
+update
+delete
+
+https://docs.python.org/3/
+https://roadmap.sh/
+
+<control statement 제어문>
+
+먼저 기술한 명령이 먼저 실행된다.
+실행의 순서를 제어
+
+선택문 : if, match~case
+반복문 : for, while (do~while없음)
+무시문 : break, continue
+복귀문 : return
+
+if (조건식) :
