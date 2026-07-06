@@ -486,9 +486,11 @@
     nctx.clearRect(0, 0, 100, 60);
     nctx.fillStyle = '#0e1224';
     nctx.fillRect(0, 0, 100, 60);
-    nctx.translate(20, 10);
-    for (const [x, y] of SHAPES[next]) {
-      drawCell(nctx, x, y, COLORS[next], 16);
+    if (next) {
+      nctx.translate(20, 10);
+      for (const [x, y] of SHAPES[next]) {
+        drawCell(nctx, x, y, COLORS[next], 16);
+      }
     }
     nctx.restore();
 
@@ -525,14 +527,18 @@
     const delta = time - lastTime;
     lastTime = time;
 
-    if (state === 'playing' && !paused) {
-      dropCounter += delta;
-      if (dropCounter > dropInterval) {
-        softDropAuto();
-        dropCounter = 0;
+    try {
+      if (state === 'playing' && !paused) {
+        dropCounter += delta;
+        if (dropCounter > dropInterval) {
+          softDropAuto();
+          dropCounter = 0;
+        }
       }
+      draw();
+    } catch (err) {
+      console.error('렌더링 오류:', err);
     }
-    draw();
     requestAnimationFrame(update);
   }
 
