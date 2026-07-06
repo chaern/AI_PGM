@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테트리스</title>
+<style>
+  :root {
+    --bg-deep: #0b0e1a;
+    --bg-panel: #12172a;
+    --neon-cyan: #4ee3ff;
+    --neon-pink: #ff4fa3;
+    --neon-lime: #c6ff4e;
+    --text-dim: #8a93b8;
+    --text-bright: #eef1ff;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: radial-gradient(circle at 50% -10%, #1a2148 0%, var(--bg-deep) 55%);
+    font-family: 'Courier New', 'Malgun Gothic', monospace;
+    color: var(--text-bright);
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100%; padding: 16px;
+  }
+
+  .title {
+    font-size: 28px; letter-spacing: 8px; font-weight: 700;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px rgba(78,227,255,0.7), 0 0 24px rgba(78,227,255,0.35);
+    margin: 0 0 10px 0;
+  }
+
+  #layout {
+    display: flex; gap: 18px; align-items: flex-start;
+  }
+
+  #boardWrap {
+    position: relative;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(78,227,255,0.25), 0 0 40px rgba(78,227,255,0.12), inset 0 0 60px rgba(0,0,0,0.6);
+    background: var(--bg-panel);
+    overflow: hidden;
+  }
+
+  canvas { display: block; touch-action: none; }
+
+  #sidebar {
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .panel {
+    background: var(--bg-panel);
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(78,227,255,0.18), inset 0 0 24px rgba(0,0,0,0.5);
+    padding: 10px 12px;
+  }
+
+  .panel .label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .panel .value {
+    font-size: 22px;
+    color: var(--neon-lime);
+    text-shadow: 0 0 6px rgba(198,255,78,0.6);
+  }
+
+  #nextCanvas {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .keys {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    letter-spacing: 0.5px;
+  }
+  .keys b { color: var(--neon-cyan); }
+
+  #overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px;
+    background: rgba(11,14,26,0.78);
+    backdrop-filter: blur(2px);
+    text-align: center;
+  }
+  #overlay.hidden { display: none; }
+  #overlay h2 { margin: 0; font-size: 24px; letter-spacing: 3px; }
+  #overlay p { margin: 0; color: var(--text-dim); font-size: 12px; letter-spacing: 1px; max-width: 240px; }
+
+  .btn {
+    margin-top: 6px; padding: 10px 26px; font-size: 14px; letter-spacing: 3px;
+    font-family: inherit; color: var(--bg-deep); background: var(--neon-cyan);
+    border: none; border-radius: 6px; cursor: pointer;
+    box-shadow: 0 0 16px rgba(78,227,255,0.6);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 0 24px rgba(78,227,255,0.9); }
+  .btn:active { transform: translateY(0); }
+
+  .footer-hint {
+    margin-top: 12px; font-size: 12px; color: var(--text-dim); letter-spacing: 1px; text-align: center;
+  }
+
+  /* 모바일 터치 컨트롤 */
+  #touchControls {
+    display: none;
+    margin-top: 14px;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 320px;
+  }
+  #touchControls button {
+    width: 56px; height: 48px;
+    border-radius: 8px;
+    border: 1px solid rgba(78,227,255,0.35);
+    background: rgba(78,227,255,0.08);
+    color: var(--neon-cyan);
+    font-size: 18px;
+    font-family: inherit;
+  }
+  #touchControls button:active { background: rgba(78,227,255,0.25); }
+
+  @media (max-width: 720px) {
+    #layout { flex-direction: column; align-items: center; }
+    #sidebar { flex-direction: row; width: auto; flex-wrap: wrap; justify-content: center; }
+    .panel { min-width: 90px; }
+    #touchControls { display: flex; }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="title">TETRIS</div>
+  <div id="layout">
+    <div id="boardWrap">
+      <canvas id="board" width="300" height="600"></canvas>
+      <div id="overlay">
+        <h2 id="overlayTitle">시작할 준비가 되셨나요?</h2>
+        <p id="overlaySub">← → 이동 · ↑ 회전 · ↓ 소프트 드롭 · 스페이스 하드 드롭 · C 홀드</p>
+        <button class="btn" id="startBtn">시작하기</button>
+      </div>
+    </div>
+    <div id="sidebar">
+      <div class="panel">
+        <div class="label">SCORE</div>
+        <div class="value" id="scoreVal">0</div>
+      </div>
+      <div class="panel">
+        <div class="label">LEVEL</div>
+        <div class="value" id="levelVal">1</div>
+      </div>
+      <div class="panel">
+        <div class="label">LINES</div>
+        <div class="value" id="linesVal">0</div>
+      </div>
+      <div class="panel">
+        <div class="label">NEXT</div>
+        <canvas id="nextCanvas" width="100" height="60"></canvas>
+      </div>
+      <div class="panel">
+        <div class="label">HOLD</div>
+        <canvas id="holdCanvas" width="100" height="60"></canvas>
+      </div>
+      <div class="panel keys">
+        <div><b>← →</b> 이동</div>
+        <div><b>↑</b> 회전</div>
+        <div><b>↓</b> 소프트드롭</div>
+        <div><b>SPACE</b> 하드드롭</div>
+        <div><b>C</b> 홀드</div>
+        <div><b>P</b> 일시정지</div>
+      </div>
+    </div>
+  </div>
+  <div id="touchControls">
+    <button id="tLeft">←</button>
+    <button id="tRotate">↻</button>
+    <button id="tRight">→</button>
+    <button id="tDown">↓</button>
+    <button id="tHold">HOLD</button>
+    <button id="tDrop">DROP</button>
+  </div>
+  <div class="footer-hint">← → 이동 · ↑ 회전 · ↓ 소프트드롭 · SPACE 하드드롭 · C 홀드 · P 일시정지</div>
+</div>
+
+<script>
+(function () {
+  const COLS = 10, ROWS = 20, CELL = 30;
+  const boardCanvas = document.getElementById('board');
+  const ctx = boardCanvas.getContext('2d');
+  const nextCanvas = document.getElementById('nextCanvas');
+  const nctx = nextCanvas.getContext('2d');
+  const holdCanvas = document.getElementById('holdCanvas');
+  const hctx = holdCanvas.getContext('2d');
+
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlaySub = document.getElementById('overlaySub');
+  const startBtn = document.getElementById('startBtn');
+  const scoreVal = document.getElementById('scoreVal');
+  const levelVal = document.getElementById('levelVal');
+  const linesVal = document.getElementById('linesVal');
+
+  const COLORS = {
+    I: '#4ee3ff', O: '#ffe14f', T: '#c77dff', S: '#c6ff4e',
+    Z: '#ff4f7c', J: '#4e7bff', L: '#ff9f4f'
+  };
+
+  const SHAPES = {
+    I: [[0,1],[1,1],[2,1],[3,1]],
+    O: [[1,0],[2,0],[1,1],[2,1]],
+    T: [[1,0],[0,1],[1,1],[2,1]],
+    S: [[1,0],[2,0],[0,1],[1,1]],
+    Z: [[0,0],[1,0],[1,1],[2,1]],
+    J: [[0,0],[0,1],[1,1],[2,1]],
+    L: [[2,0],[0,1],[1,1],[2,1]]
+  };
+
+  const TYPES = Object.keys(SHAPES);
+
+  let grid, current, next, hold, canHold;
+  let score, level, lines, state, paused;
+  let dropCounter, dropInterval, lastTime;
+  let bag = [];
+
+  function refillBag() {
+    bag = [...TYPES];
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+  }
+
+  function nextType() {
+    if (bag.length === 0) refillBag();
+    return bag.pop();
+  }
+
+  function createPiece(type) {
+    // 회전 계산을 위해 각 셀을 4x4 그리드 기준 좌표로 정규화
+    return {
+      type,
+      cells: SHAPES[type].map(([x, y]) => ({ x, y })),
+      x: 3, y: -1,
+      rotation: 0
+    };
+  }
+
+  function rotateCells(cells, type) {
+    if (type === 'O') return cells.map(c => ({ ...c }));
+    // 중심 기준 90도 회전 (간단한 SRS 근사)
+    const size = type === 'I' ? 4 : 3;
+    return cells.map(({ x, y }) => ({
+      x: size - 1 - y,
+      y: x
+    }));
+  }
+
+  function initGrid() {
+    grid = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+  }
+
+  function newGame() {
+    initGrid();
+    score = 0; level = 1; lines = 0;
+    dropInterval = 800;
+    dropCounter = 0;
+    hold = null; canHold = true;
+    bag = [];
+    next = nextType();
+    spawnPiece();
+    updateHud();
+  }
+
+  function spawnPiece() {
+    current = createPiece(next);
+    next = nextType();
+    canHold = true;
+    if (collides(current, current.cells, current.x, current.y)) {
+      state = 'gameover';
+      showOverlay('게임 오버', `최종 점수 ${score}점 · 스페이스바로 다시 시작`, '다시 시작');
+    }
+  }
+
+  function collides(piece, cells, px, py) {
+    for (const c of cells) {
+      const x = px + c.x;
+      const y = py + c.y;
+      if (x < 0 || x >= COLS || y >= ROWS) return true;
+      if (y >= 0 && grid[y][x]) return true;
+    }
+    return false;
+  }
+
+  function merge() {
+    for (const c of current.cells) {
+      const x = current.x + c.x;
+      const y = current.y + c.y;
+      if (y >= 0) grid[y][x] = current.type;
+    }
+  }
+
+  function clearLines() {
+    let cleared = 0;
+    for (let y = ROWS - 1; y >= 0; y--) {
+      if (grid[y].every(cell => cell)) {
+        grid.splice(y, 1);
+        grid.unshift(Array(COLS).fill(null));
+        cleared++;
+        y++;
+      }
+    }
+    if (cleared > 0) {
+      const points = [0, 100, 300, 500, 800][cleared] * level;
+      score += points;
+      lines += cleared;
+      level = Math.floor(lines / 10) + 1;
+      dropInterval = Math.max(100, 800 - (level - 1) * 60);
+      updateHud();
+    }
+  }
+
+  function updateHud() {
+    scoreVal.textContent = score;
+    levelVal.textContent = level;
+    linesVal.textContent = lines;
+  }
+
+  function showOverlay(title, sub, btnLabel) {
+    overlayTitle.textContent = title;
+    overlaySub.textContent = sub;
+    startBtn.textContent = btnLabel;
+    overlay.classList.remove('hidden');
+  }
+  function hideOverlay() { overlay.classList.add('hidden'); }
+
+  // ---------- 이동/회전 ----------
+  function move(dx) {
+    if (state !== 'playing') return;
+    if (!collides(current, current.cells, current.x + dx, current.y)) {
+      current.x += dx;
+    }
+  }
+
+  function softDrop() {
+    if (state !== 'playing') return;
+    if (!collides(current, current.cells, current.x, current.y + 1)) {
+      current.y += 1;
+      score += 1;
+      updateHud();
+    } else {
+      lockPiece();
+    }
+    dropCounter = 0;
+  }
+
+  function hardDrop() {
+    if (state !== 'playing') return;
+    let dist = 0;
+    while (!collides(current, current.cells, current.x, current.y + 1)) {
+      current.y += 1;
+      dist++;
+    }
+    score += dist * 2;
+    updateHud();
+    lockPiece();
+  }
+
+  function rotate() {
+    if (state !== 'playing') return;
+    const rotated = rotateCells(current.cells, current.type);
+    const kicks = [0, -1, 1, -2, 2];
+    for (const k of kicks) {
+      if (!collides(current, rotated, current.x + k, current.y)) {
+        current.cells = rotated;
+        current.x += k;
+        return;
+      }
+    }
+  }
+
+  function lockPiece() {
+    merge();
+    clearLines();
+    spawnPiece();
+  }
+
+  function holdPiece() {
+    if (!canHold || state !== 'playing') return;
+    canHold = false;
+    if (hold === null) {
+      hold = current.type;
+      spawnPiece();
+    } else {
+      const temp = hold;
+      hold = current.type;
+      current = createPiece(temp);
+    }
+  }
+
+  // ---------- 렌더 ----------
+  function drawCell(c, x, y, color, size, alpha) {
+    c.globalAlpha = alpha === undefined ? 1 : alpha;
+    c.fillStyle = color;
+    c.shadowColor = color;
+    c.shadowBlur = 8;
+    c.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+    c.shadowBlur = 0;
+    c.globalAlpha = 1;
+  }
+
+  function drawGrid() {
+    ctx.fillStyle = '#12172a';
+    ctx.fillRect(0, 0, boardCanvas.width, boardCanvas.height);
+
+    ctx.strokeStyle = 'rgba(78,227,255,0.05)';
+    for (let x = 0; x <= COLS; x++) {
+      ctx.beginPath(); ctx.moveTo(x * CELL, 0); ctx.lineTo(x * CELL, ROWS * CELL); ctx.stroke();
+    }
+    for (let y = 0; y <= ROWS; y++) {
+      ctx.beginPath(); ctx.moveTo(0, y * CELL); ctx.lineTo(COLS * CELL, y * CELL); ctx.stroke();
+    }
+
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (grid[y][x]) drawCell(ctx, x, y, COLORS[grid[y][x]], CELL);
+      }
+    }
+  }
+
+  function getGhostY() {
+    let gy = current.y;
+    while (!collides(current, current.cells, current.x, gy + 1)) gy++;
+    return gy;
+  }
+
+  function drawCurrent() {
+    if (!current) return;
+    const gy = getGhostY();
+    for (const c of current.cells) {
+      const x = current.x + c.x;
+      const y = gy + c.y;
+      if (y >= 0) drawCell(ctx, x, y, COLORS[current.type], CELL, 0.18);
+    }
+    for (const c of current.cells) {
+      const x = current.x + c.x;
+      const y = current.y + c.y;
+      if (y >= 0) drawCell(ctx, x, y, COLORS[current.type], CELL);
+    }
+  }
+
+  function drawMiniPiece(canvasCtx, type) {
+    canvasCtx.clearRect(0, 0, 100, 60);
+    canvasCtx.fillStyle = '#0e1224';
+    canvasCtx.fillRect(0, 0, 100, 60);
+    if (!type) return;
+    const cells = SHAPES[type];
+    const size = 16;
+    const offsetX = type === 'I' ? 18 : type === 'O' ? 34 : 26;
+    const offsetY = 14;
+    for (const [x, y] of cells) {
+      drawCell(canvasCtx, x, y, COLORS[type], size);
+    }
+    // 오프셋 재조정을 위해 다시 그림 (간단화를 위해 translate 사용)
+  }
+
+  function drawNextAndHold() {
+    nctx.save();
+    nctx.clearRect(0, 0, 100, 60);
+    nctx.fillStyle = '#0e1224';
+    nctx.fillRect(0, 0, 100, 60);
+    nctx.translate(20, 10);
+    for (const [x, y] of SHAPES[next]) {
+      drawCell(nctx, x, y, COLORS[next], 16);
+    }
+    nctx.restore();
+
+    hctx.save();
+    hctx.clearRect(0, 0, 100, 60);
+    hctx.fillStyle = '#0e1224';
+    hctx.fillRect(0, 0, 100, 60);
+    if (hold) {
+      hctx.translate(20, 10);
+      for (const [x, y] of SHAPES[hold]) {
+        drawCell(hctx, x, y, COLORS[hold], 16);
+      }
+    }
+    hctx.restore();
+  }
+
+  function draw() {
+    drawGrid();
+    drawCurrent();
+    drawNextAndHold();
+
+    if (paused && state === 'playing') {
+      ctx.fillStyle = 'rgba(11,14,26,0.6)';
+      ctx.fillRect(0, 0, boardCanvas.width, boardCanvas.height);
+      ctx.fillStyle = '#4ee3ff';
+      ctx.font = '22px Courier New';
+      ctx.textAlign = 'center';
+      ctx.fillText('일시정지 (P)', boardCanvas.width / 2, boardCanvas.height / 2);
+    }
+  }
+
+  // ---------- 게임 루프 ----------
+  function update(time = 0) {
+    const delta = time - lastTime;
+    lastTime = time;
+
+    if (state === 'playing' && !paused) {
+      dropCounter += delta;
+      if (dropCounter > dropInterval) {
+        softDropAuto();
+        dropCounter = 0;
+      }
+    }
+    draw();
+    requestAnimationFrame(update);
+  }
+
+  function softDropAuto() {
+    if (!collides(current, current.cells, current.x, current.y + 1)) {
+      current.y += 1;
+    } else {
+      lockPiece();
+    }
+  }
+
+  // ---------- 입력 ----------
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code)) {
+      e.preventDefault();
+    }
+    if (state !== 'playing') {
+      if (e.code === 'Space' && (state === 'gameover' || state === 'ready')) {
+        startBtn.click();
+      }
+      return;
+    }
+    if (paused && e.code !== 'KeyP') return;
+
+    switch (e.code) {
+      case 'ArrowLeft': move(-1); break;
+      case 'ArrowRight': move(1); break;
+      case 'ArrowUp': rotate(); break;
+      case 'ArrowDown': softDrop(); break;
+      case 'Space': hardDrop(); break;
+      case 'KeyC': holdPiece(); break;
+      case 'KeyP': paused = !paused; break;
+    }
+  });
+
+  // ---------- 터치 컨트롤 ----------
+  function bindHold(el, fn, repeat) {
+    let timer = null;
+    el.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      fn();
+      if (repeat) timer = setInterval(fn, 120);
+    }, { passive: false });
+    el.addEventListener('touchend', () => { if (timer) clearInterval(timer); });
+    el.addEventListener('click', fn);
+  }
+
+  bindHold(document.getElementById('tLeft'), () => move(-1), true);
+  bindHold(document.getElementById('tRight'), () => move(1), true);
+  bindHold(document.getElementById('tDown'), () => softDrop(), true);
+  document.getElementById('tRotate').addEventListener('click', rotate);
+  document.getElementById('tDrop').addEventListener('click', hardDrop);
+  document.getElementById('tHold').addEventListener('click', holdPiece);
+
+  // ---------- 시작 버튼 ----------
+  startBtn.addEventListener('click', () => {
+    newGame();
+    state = 'playing';
+    paused = false;
+    hideOverlay();
+    dropCounter = 0;
+    lastTime = performance.now();
+  });
+
+  // ---------- 초기화 ----------
+  state = 'ready';
+  paused = false;
+  initGrid();
+  next = null; hold = null; current = null;
+  lastTime = performance.now();
+  update();
+})();
+</script>
+</body>
+</html>
