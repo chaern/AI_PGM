@@ -1,0 +1,40 @@
+<mobaXterm>
+->portable version
+
+1 .ssh설정
+2. web server
+3. db server
+4. 고정 ip 설정
+
+passwd
+sudo passwd root
+
+su - root
+sudo apt update
+sudo apt upgrade
+
+#설치
+sudo apt install openssh-server
+sudo systemctl status ssh
+sudo systemctl start ssh
+
+#고정 ip 설정
+cd /etc/netplan
+sudo vi 50 => TAB
+
+
+#vi 사용
+esc => 명령어 모드
+i, a, o, O => 입력
+x, dd => 삭제
+yy, p => 붙복
+:set number => 라인 보기
+:set nonumber => 라인 없애기
+:3 => 라인 이동
+G => 마지막 라인
+:wq => 저장 후 종료
+
+cd/ etc/netplan
+sudo vi 50 => TAB
+sudo netplan apply
+ip a ==> 192.168.100.50;;
