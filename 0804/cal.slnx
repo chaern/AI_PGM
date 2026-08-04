@@ -1,7 +1,0 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="cal/cal.vcxproj" Id="6cb6ee57-4541-4446-802e-fb421deed55b" />
-</Solution>
