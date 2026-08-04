@@ -1,6 +1,5 @@
-# 객체지향 정보
-## 파이썬과 C++
 
+# 파이썬과 C++
 # Programming Projects
 
 Python과 C++를 이용해 제작한 간단한 프로젝트 모음입니다.
