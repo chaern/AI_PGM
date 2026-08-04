@@ -3,30 +3,38 @@
 using namespace std;
 
 class Point {
-	int x, y;
+    int x, y;
 public:
-	void set(int x, int y) { this->x = x; this->y = y; }
-	void showPoint() {
-		cout << "(" << x << ", " << y << ")" << endl;
-	}
+    void set(int x, int y) {
+        this->x = x;
+        this->y = y;
+    }
+
+    void showPoint() {
+        cout << "(" << x << ", " << y << ")" << endl;
+    }
 };
 
-class colorpoint : public Point {
-	string color;
+class Colorpoint : public Point {
+    string color;
 public:
-	void setColor(string color) { this->color = color; }
-	void showColorPoint();
+    void setColor(string color) {
+        this->color = color;
+    }
+
+    void showColorPoint();
 };
 
-void ColorPoint::showColorPoint() {
-	cout << color << endl;
-	showPoint();
+void Colorpoint::showColorPoint() {
+    cout << color << endl;
+    showPoint();
 }
 
 int main() {
-	Point p;
-	colorpoint cp;
-	cp.set(3, 4);
-	cp.setColor("red");
-	cp.showColorPoint();
+    Point p;
+    Colorpoint cp;
+
+    cp.set(3, 4);
+    cp.setColor("red");
+    cp.showColorPoint();
 }
