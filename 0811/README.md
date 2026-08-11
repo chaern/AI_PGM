@@ -1,1 +1,13 @@
+Arduino 실습
 (경찰차에 표시하는 경광등 만들기)(https://www.tinkercad.com/things/2N48u4toG2c-)
+(LED를 이용한 신호등 구현)(https://www.tinkercad.com/things/jhuAbTda9BW-led-)
+(LED 스탠드 만들기)(https://www.tinkercad.com/things/eyfjb99THoF-led-2)
+(긴 악보의 연주곡)(https://www.tinkercad.com/things/cWU9uryOOmk-)
+(스위치와 부저를 이용한 전자피아노 만들기)(https://www.tinkercad.com/things/1swR4ybRv7c-)
+(LED 스탠드 만들기1_가변저항 사용)(https://www.tinkercad.com/things/iBhF60MZczJ-led-1-)
+(tone()함수를 이용하여 '도레미파솔라시도' 출력)(https://www.tinkercad.com/things/23FTga4wHLU-tone-)
+(LCD 16x2 문자열 출력하기)(https://www.tinkercad.com/things/lx8mKDvmt7q-lcd-16x2-)
+(포토 레지스터 : 빛 센서(CDS))(https://www.tinkercad.com/things/bNRTsEW9KEo-cds)
+(포토 레지스터 : 빛 센서(CDS)2)(https://www.tinkercad.com/things/g39kSEPYK2N-cds2)
+(자동 밝기 조절)(https://www.tinkercad.com/things/7XTYYX05ECZ-)
+(초음파 거리 센서(3pins))(https://www.tinkercad.com/things/2H6dOWb8miP-3pins)
